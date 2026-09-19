@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>企业知识库 Agent 控制台</title>
+  <style>
+    :root { --bg:#f5f7fb; --card:#fff; --text:#172033; --muted:#6b7280; --line:#e5e7eb; --primary:#2563eb; --danger:#dc2626; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--text); background:var(--bg); font:14px/1.6 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+    header { padding:24px 32px; background:#111827; color:#fff; }
+    header h1 { margin:0 0 4px; font-size:24px; } header p { margin:0; color:#cbd5e1; }
+    main { max-width:1280px; margin:24px auto; padding:0 20px; display:grid; gap:18px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr); gap:18px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 3px 12px #1118270a; }
+    h2 { margin:0 0 14px; font-size:18px; } h3 { margin:14px 0 8px; font-size:15px; }
+    label { display:block; margin:8px 0 4px; color:var(--muted); font-size:12px; }
+    input, textarea, select { width:100%; border:1px solid #d1d5db; border-radius:8px; padding:9px 10px; background:#fff; color:var(--text); }
+    textarea { min-height:100px; resize:vertical; }
+    button { border:0; border-radius:8px; padding:8px 12px; cursor:pointer; background:var(--primary); color:#fff; font-weight:600; }
+    button.secondary { background:#eef2ff; color:#1d4ed8; } button.danger { background:#fee2e2; color:#b91c1c; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .row { display:flex; gap:9px; align-items:center; } .row > * { flex:1; } .row button { flex:0 0 auto; }
+    .messages { height:390px; overflow:auto; padding:10px; border:1px solid var(--line); border-radius:10px; background:#fafafa; }
+    .msg { margin:9px 0; padding:9px 11px; border-radius:10px; white-space:pre-wrap; } .msg.user { background:#dbeafe; margin-left:18%; } .msg.assistant { background:#fff; border:1px solid var(--line); margin-right:10%; }
+    .meta { color:var(--muted); font-size:12px; margin-top:5px; } .citation { color:#1d4ed8; font-size:12px; margin-top:5px; }
+    table { width:100%; border-collapse:collapse; } th,td { padding:9px 6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { color:var(--muted); font-size:12px; }
+    .status { padding:8px 10px; border-radius:8px; background:#f1f5f9; color:#475569; margin:8px 0; } .status.ok { background:#dcfce7; color:#166534; } .status.err { background:#fee2e2; color:#991b1b; }
+    .small { color:var(--muted); font-size:12px; } .actions { display:flex; gap:5px; flex-wrap:wrap; }
+    @media (max-width:900px) { .grid { grid-template-columns:1fr; } header { padding:20px; } }
+  </style>
+</head>
+<body>
+  <header><h1>企业知识库 Agent 控制台</h1><p>本地调试界面：对话、引用证据、文档生命周期和索引任务</p></header>
+  <main>
+    <section class="card">
+      <h2>访问上下文</h2>
+      <div class="row">
+        <div><label>租户 ID</label><input id="tenant" value="default" /></div>
+        <div><label>用户 ID</label><input id="user" value="demo-user" /></div>
+        <div><label>角色</label><select id="role"><option>member</option><option>guest</option><option>manager</option><option>admin</option></select></div>
+        <div><label>部门（逗号分隔）</label><input id="departments" placeholder="finance,engineering" /></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>智能问答</h2>
+        <div id="messages" class="messages"><div class="small">试试：退货政策是什么？ 或 查询财务报销制度</div></div>
+        <div class="row" style="margin-top:10px"><textarea id="question" rows="2" placeholder="输入问题，Enter 发送，Shift+Enter 换行"></textarea><button id="send">发送</button></div>
+      </section>
+
+      <section class="card">
+        <h2>知识库概览</h2>
+        <div class="row"><button class="secondary" id="refresh">刷新目录</button><button id="rebuild">重建索引</button></div>
+        <div id="indexStatus" class="status">等待操作</div>
+        <div id="catalog" class="small" style="max-height:390px;overflow:auto;margin-top:10px">正在加载...</div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>文档管理</h2>
+      <div class="grid">
+        <div>
+          <label>文件名（仅支持 .md）</label><input id="filename" placeholder="finance-expense-policy.md" />
+          <label>版本</label><input id="version" placeholder="2026.1" />
+          <label>部门</label><input id="department" placeholder="finance" />
+          <label>访问级别</label><select id="access"><option>internal</option><option>public</option><option>confidential</option><option>restricted</option></select>
+          <label>文档内容</label><textarea id="content" rows="8" placeholder="# 文档标题\n\n## 规则\n在这里粘贴 Markdown 内容"></textarea>
+          <button id="upload">保存文档并建立索引</button>
+        </div>
+        <div><label>任务状态</label><div id="tasks" class="small">暂无任务</div><p class="small">更新文档时会自动归档旧版本；删除操作会移动到 .trash，可手动恢复。</p></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const json = async (url, options={}) => { const r = await fetch(url, options); const data = await r.json(); if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`); return data; };
+    const context = () => ({ tenant_id:$('tenant').value || 'default', user_id:$('user').value || 'anonymous', role:$('role').value, departments:$('departments').value.split(',').map(x=>x.trim()).filter(Boolean) });
+    const addMessage = (kind, text, citations=[]) => { const box=$('messages'); const el=document.createElement('div'); el.className=`msg ${kind}`; el.textContent=text; if (citations.length) { const c=document.createElement('div'); c.className='citation'; c.textContent='引用：'+citations.map(x=>`${x.title||x.source} / ${x.section||''} / v${x.version||'-'}`).join('；'); el.appendChild(c); } box.appendChild(el); box.scrollTop=box.scrollHeight; };
+    $('send').onclick = async () => { const q=$('question').value.trim(); if(!q)return; $('question').value=''; addMessage('user',q); $('send').disabled=true; try { const d=await json('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...context(),user_input:q})}); addMessage('assistant',d.reply||'无回复',d.citations||[]); } catch(e){ addMessage('assistant','请求失败：'+e.message); } finally {$('send').disabled=false;} };
+    $('question').addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('send').click();} });
+    const task = async id => { try { const d=await json('/knowledge/index/'+encodeURIComponent(id)); $('indexStatus').textContent=`任务 ${id.slice(0,8)}：${d.status}，文档 ${d.total_documents}，分块 ${d.total_chunks}${d.error?'；'+d.error:''}`; $('indexStatus').className='status '+(d.status==='success'?'ok':d.status==='failed'?'err':''); if(['pending','running'].includes(d.status)) setTimeout(()=>task(id),1000); } catch(e) {$('indexStatus').textContent=e.message;} };
+    const showCatalog = d => { if(!d.documents.length){$('catalog').textContent='暂无知识文档';return;} $('catalog').innerHTML='<table><thead><tr><th>文档</th><th>租户/部门</th><th>版本</th><th>操作</th></tr></thead><tbody>'+d.documents.map(x=>`<tr><td>${x.title||x.doc}<div class="small">${x.chunk_count} chunks · ${x.access_level}</div></td><td>${x.tenant_id||'default'} / ${x.department||'-'}</td><td>${x.version||'-'}</td><td><div class="actions"><button class="secondary" onclick="versions('${encodeURIComponent(x.doc)}')">版本</button><button class="danger" onclick="removeDoc('${encodeURIComponent(x.doc)}')">删除</button></div></td></tr>`).join('')+'</tbody></table>'; };
+    const refresh = async () => { try { showCatalog(await json('/knowledge')); } catch(e){$('catalog').textContent='加载失败：'+e.message;} }; $('refresh').onclick=refresh;
+    $('rebuild').onclick = async () => { try { const d=await json('/knowledge/index',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); $('indexStatus').textContent='已提交索引任务'; task(d.task_id); } catch(e){$('indexStatus').textContent=e.message;} };
+    $('upload').onclick = async () => { try { const d=await json('/knowledge/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:$('filename').value,content:$('content').value,metadata:{version:$('version').value,department:$('department').value,access_level:$('access').value,tenant_id:$('tenant').value||'default'}})}); $('tasks').textContent='文档已保存，任务：'+d.task_id; task(d.task_id); await refresh(); } catch(e){$('tasks').textContent='失败：'+e.message;} };
+    window.versions = async encoded => { const name=decodeURIComponent(encoded); try { const d=await json('/knowledge/documents/'+encodeURIComponent(name)+'/versions'); const v=d.versions.join('\n')||'无历史版本'; const selected=prompt(`${name} 历史版本：\n${v}\n\n输入要回滚的版本，取消则退出`); if(selected){ const r=await json('/knowledge/documents/'+encodeURIComponent(name)+'/rollback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:selected})}); task(r.task_id); await refresh(); } } catch(e){alert(e.message);} };
+    window.removeDoc = async encoded => { const name=decodeURIComponent(encoded); if(!confirm(`确认删除 ${name}？文件会移动到可恢复回收站。`))return; try { const d=await json('/knowledge/documents/'+encodeURIComponent(name),{method:'DELETE'}); task(d.task_id); await refresh(); } catch(e){alert(e.message);} };
+    refresh();
+  </script>
+</body>
+</html>
