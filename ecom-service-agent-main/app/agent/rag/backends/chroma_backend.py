@@ -94,10 +94,7 @@ class ChromaBackend(VectorBackend):
                     "version": c.version,
                     "effective_time": c.effective_time,
                     "updated_at": c.updated_at,
-                    "department": c.department,
-                    "access_level": c.access_level,
                     "tags": ",".join(c.tags or []),
-                    "tenant_id": c.tenant_id,
                 }
                 for c in chunks
             ],
@@ -132,10 +129,7 @@ class ChromaBackend(VectorBackend):
                 version=meta.get("version", ""),
                 effective_time=meta.get("effective_time", ""),
                 updated_at=meta.get("updated_at", ""),
-                department=meta.get("department", ""),
-                access_level=meta.get("access_level", "internal"),
                 tags=[x for x in meta.get("tags", "").split(",") if x],
-                tenant_id=meta.get("tenant_id", "default"),
             )
             score = 1.0 - float(dist)  # cosine distance → similarity
             out.append(RetrievedChunk(chunk=chunk, score=score))

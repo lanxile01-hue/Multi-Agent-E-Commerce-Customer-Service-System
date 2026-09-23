@@ -80,7 +80,7 @@ TOOL_DEFINITIONS: list[dict] = [
         "function": {
             "name": "search_knowledge",
             "description": (
-                "检索企业知识库中的政策、流程和帮助文档。"
+                "检索平台政策、规则和帮助文档。"
                 "当顾客询问规则、流程、时效、是否支持等政策类问题时使用，"
                 "比如「能退货吗」「多久到账」「钻石会员有什么权益」「偏远地区包邮吗」。"
                 "返回 Top-K 命中片段及来源文档，请基于检索结果回答，不要编造政策"
@@ -96,21 +96,6 @@ TOOL_DEFINITIONS: list[dict] = [
                         "type": "integer",
                         "description": "返回片段数，默认 3，最大 10",
                         "default": 3,
-                    },
-                    "department": {
-                        "type": "string",
-                        "description": "可选，按文档所属部门过滤，例如 finance、engineering",
-                        "default": "",
-                    },
-                    "access_level": {
-                        "type": "string",
-                        "description": "可选，按访问级别过滤，例如 public、internal、confidential",
-                        "default": "",
-                    },
-                    "tenant_id": {
-                        "type": "string",
-                        "description": "可选租户标识；通常由服务端访问上下文注入，不应由用户自由伪造",
-                        "default": "",
                     },
                 },
                 "required": ["query"],

@@ -14,7 +14,6 @@ from app.agent.rag.backends import create_backend
 from app.agent.rag.backends.bm25_backend import BM25Backend
 from app.agent.rag.embedder import Embedder
 from app.agent.rag.retriever import KnowledgeRetriever
-from app.knowledge.access import can_read, get_access_context
 
 _retriever = None  # KnowledgeRetriever | HybridRetriever
 _adaptive_mode: bool = False
@@ -117,9 +116,6 @@ def search_knowledge(
     query: str,
     top_k: int = 3,
     history: Optional[list[dict]] = None,
-    department: str = "",
-    access_level: str = "",
-    tenant_id: str = "",
 ) -> dict:
     """检索知识库。Adaptive-RAG 模式下 history 参数用于 Query Rewrite。
 
@@ -156,22 +152,19 @@ def search_knowledge(
         }
 
     top_k = max(1, min(int(top_k or 3), 10))
-    retrieval_k = min(top_k * 3, 30) if (department or access_level) else top_k
 
     if _adaptive_mode:
         from app.agent.rag.hybrid_retriever import HybridRetriever
         assert isinstance(retriever, HybridRetriever)
-        hits = retriever.search(query, top_k=retrieval_k, history=history)
+        hits = retriever.search(query, top_k=top_k, history=history)
         mode_label = "adaptive"
         retrieval_method = "bm25+vector+rrf"
     else:
         assert isinstance(retriever, KnowledgeRetriever)
-        hits = retriever.search(query, top_k=retrieval_k)
+        hits = retriever.search(query, top_k=top_k)
         mode_label = "standard"
         retrieval_method = "vector"
 
-    context = get_access_context()
-    requested_tenant = tenant_id or context.tenant_id
     results = [
         {
             "evidence_id": h.chunk.chunk_id,
@@ -184,17 +177,10 @@ def search_knowledge(
             "version": h.chunk.version,
             "effective_time": h.chunk.effective_time,
             "updated_at": h.chunk.updated_at,
-            "department": h.chunk.department,
-            "access_level": h.chunk.access_level,
             "tags": h.chunk.tags or [],
-            "tenant_id": h.chunk.tenant_id,
             "retrieval_method": retrieval_method,
         }
         for h in hits
-        if h.chunk.tenant_id == requested_tenant
-        and can_read(h.chunk.tenant_id, h.chunk.access_level, h.chunk.department)
-        if (not department or h.chunk.department == department)
-        and (not access_level or h.chunk.access_level == access_level)
     ]
     results = results[:top_k]
 
@@ -213,12 +199,6 @@ def search_knowledge(
         "backend": settings.rag_backend if not _adaptive_mode else "adaptive_rag",
         "mode": mode_label,
         "query": query,
-        "filters": {
-            "tenant_id": requested_tenant,
-            "department": department,
-            "access_level": access_level,
-            "role": context.role,
-        },
         "results": results,
         "evidence": results,  # 结构化证据链（来源/版本/章节/分数/检索方式）
         "message": "" if reliable else "未检索到可靠的政策依据，请转人工核实或直接查询",

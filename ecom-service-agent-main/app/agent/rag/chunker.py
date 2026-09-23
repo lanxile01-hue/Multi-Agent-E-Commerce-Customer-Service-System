@@ -12,8 +12,7 @@
 - text：chunk 全文（含小节结构）
 - chunk_id：稳定的字符串 id，便于增量更新
 - title/source/version/effective_time/updated_at：用于证据引用和文档生命周期
-- department/access_level/tags：为后续权限过滤和知识空间隔离预留
-- tenant_id：知识空间/租户标识，默认值为 `default`
+- tags：文档标签
 """
 
 import re
@@ -37,10 +36,7 @@ class Chunk:
     version: str = ""
     effective_time: str = ""
     updated_at: str = ""
-    department: str = ""
-    access_level: str = "internal"
     tags: list[str] | None = None
-    tenant_id: str = "default"
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -174,8 +170,5 @@ def _make_chunk(
         version=str(metadata.get("version") or ""),
         effective_time=str(metadata.get("effective_time") or ""),
         updated_at=str(metadata.get("updated_at") or ""),
-        department=str(metadata.get("department") or ""),
-        access_level=str(metadata.get("access_level") or "internal"),
         tags=list(metadata.get("tags") or []),
-        tenant_id=str(metadata.get("tenant_id") or "default"),
     )

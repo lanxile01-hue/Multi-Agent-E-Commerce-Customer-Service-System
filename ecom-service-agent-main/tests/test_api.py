@@ -64,32 +64,13 @@ def test_rate_limiter():
     assert rl.allow("k") is False  # 超过限制
 
 
-def test_knowledge_catalog(tmp_path, monkeypatch):
-    knowledge_dir = tmp_path / "knowledge"
-    knowledge_dir.mkdir()
-    (knowledge_dir / "制度.md").write_text(
-        "---\n"
-        "title: 报销制度\nversion: 1.0\ndepartment: finance\n---\n"
-        "# 报销制度\n\n## 申请\n需要提交发票。\n",
-        encoding="utf-8",
-    )
-    monkeypatch.setattr("app.api.routes.settings.kb_dir", str(knowledge_dir))
-    agent, h = _handler()
-    status, body = h.knowledge_catalog()
-    assert status == 200
-    assert body["total_documents"] == 1
-    assert body["documents"][0]["title"] == "报销制度"
-    assert body["documents"][0]["department"] == "finance"
-    agent.close()
-
-
 def test_citation_projection_does_not_leak_full_evidence():
     raw = json.dumps({
         "reliable": True,
         "evidence": [{
             "evidence_id": "doc#00-00",
-            "title": "报销制度",
-            "source": "finance/expense-policy.md",
+            "title": "退换货政策",
+            "source": "knowledge/退换货政策.md",
             "section": "适用范围",
             "version": "1.0",
             "score": 0.88,
@@ -101,59 +82,12 @@ def test_citation_projection_does_not_leak_full_evidence():
     ])
     assert citations == [{
         "evidence_id": "doc#00-00",
-        "title": "报销制度",
-        "source": "finance/expense-policy.md",
+        "title": "退换货政策",
+        "source": "knowledge/退换货政策.md",
         "section": "适用范围",
         "version": "1.0",
         "score": 0.88,
     }]
-
-
-def test_upsert_knowledge_document_starts_index_task(tmp_path, monkeypatch):
-    knowledge_dir = tmp_path / "knowledge"
-    monkeypatch.setattr("app.api.routes.settings.kb_dir", str(knowledge_dir))
-
-    class _Task:
-        task_id = "task-1"
-        status = "pending"
-
-    monkeypatch.setattr("app.api.routes.index_manager.submit", lambda: _Task())
-    agent, h = _handler()
-    status, body = h.upsert_knowledge_document(
-        "expense.md",
-        "# 报销制度\n\n## 范围\n适用于员工。",
-        {"title": "报销制度", "department": "finance", "tags": ["报销", "财务"]},
-    )
-    assert status == 202
-    assert body["task_id"] == "task-1"
-    saved = (knowledge_dir / "expense.md").read_text(encoding="utf-8")
-    assert saved.startswith("---\n")
-    assert "department: finance" in saved
-    agent.close()
-
-
-def test_document_version_and_recoverable_delete(tmp_path, monkeypatch):
-    knowledge_dir = tmp_path / "knowledge"
-    monkeypatch.setattr("app.api.routes.settings.kb_dir", str(knowledge_dir))
-
-    class _Task:
-        task_id = "task-version"
-        status = "pending"
-
-    monkeypatch.setattr("app.api.routes.index_manager.submit", lambda: _Task())
-    agent, h = _handler()
-    h.upsert_knowledge_document("policy.md", "# v1", {"version": "1.0"})
-    h.upsert_knowledge_document("policy.md", "# v2", {"version": "2.0"})
-    status, body = h.list_document_versions("policy.md")
-    assert status == 200 and "1.0" in body["versions"]
-    status, body = h.rollback_document("policy.md", "1.0")
-    assert status == 202 and body["version"] == "1.0"
-    restored = (knowledge_dir / "policy.md").read_text(encoding="utf-8")
-    assert "version: 1.0" in restored and "# v1" in restored
-    status, body = h.delete_document("policy.md")
-    assert status == 202 and not (knowledge_dir / "policy.md").exists()
-    assert Path(body["recoverable_path"]).exists()
-    agent.close()
 
 
 def test_server_health_smoke():
@@ -191,7 +125,7 @@ def test_server_web_console_smoke():
         resp = conn.getresponse()
         body = resp.read().decode("utf-8")
         assert resp.status == 200
-        assert "企业知识库 Agent 控制台" in body
+        assert "电商客服 Agent 控制台" in body
         conn.close()
     finally:
         server.shutdown()

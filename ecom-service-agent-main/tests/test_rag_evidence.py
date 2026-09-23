@@ -21,7 +21,6 @@ from app.evaluation.rag_metrics import (  # noqa: E402
 from app.agent.tools import knowledge as knowledge_tool  # noqa: E402
 from app.agent.rag.retriever import KnowledgeRetriever  # noqa: E402
 from app.agent.rag.chunker import _chunk_one_file  # noqa: E402
-from app.knowledge.access import AccessContext, reset_access_context, set_access_context  # noqa: E402
 from tests.fakes import EmptyVectorBackend, FakeEmbedder  # noqa: E402
 
 
@@ -101,93 +100,30 @@ def test_search_knowledge_evidence_shape(monkeypatch):
     assert "score" in r
 
 
-def test_chunk_frontmatter_preserves_enterprise_metadata(tmp_path):
-    doc = tmp_path / "报销制度.md"
+def test_chunk_frontmatter_preserves_evidence_metadata(tmp_path):
+    """带 frontmatter 的文档仍能解析出证据链预留字段（source/version/生效时间）。"""
+    doc = tmp_path / "退换货政策.md"
     doc.write_text(
         "---\n"
-        "title: 报销制度\n"
-        "source: finance/expense-policy.md\n"
+        "title: 退换货政策\n"
+        "source: knowledge/退换货政策.md\n"
         "version: 2026.1\n"
         "effective_time: 2026-01-01\n"
-        "department: finance\n"
-        "access_level: internal\n"
-        "tags: 报销,财务\n"
+        "updated_at: 2026-01-10\n"
+        "tags: 退换货,售后\n"
         "---\n\n"
-        "# 报销制度\n\n## 适用范围\n员工差旅报销规则。\n",
+        "# 退换货政策\n\n## 适用范围\n自签收之日起七天内可无理由退货。\n",
         encoding="utf-8",
     )
     chunks = _chunk_one_file(doc)
     assert len(chunks) == 2
     chunk = chunks[-1]
-    assert chunk.title == "报销制度"
-    assert chunk.source == "finance/expense-policy.md"
+    assert chunk.title == "退换货政策"
+    assert chunk.source == "knowledge/退换货政策.md"
     assert chunk.version == "2026.1"
-    assert chunk.department == "finance"
-    assert chunk.tags == ["报销", "财务"]
-
-
-def test_search_knowledge_filters_by_department(monkeypatch):
-    from app.agent.rag.backends.base import RetrievedChunk
-    from app.agent.rag.chunker import Chunk
-
-    class _FilteredBackend(EmptyVectorBackend):
-        def search(self, query_vector, top_k):
-            return [
-                RetrievedChunk(
-                    chunk=Chunk(
-                        chunk_id="eng#00-00", doc="eng", section="runbook",
-                        text="engineering", department="engineering",
-                    ), score=0.95,
-                ),
-                RetrievedChunk(
-                    chunk=Chunk(
-                        chunk_id="finance#00-00", doc="finance", section="policy",
-                        text="finance", department="finance",
-                    ), score=0.90,
-                ),
-            ]
-
-    retriever = KnowledgeRetriever(embedder=FakeEmbedder(), backend=_FilteredBackend())
-    retriever.load()
-    monkeypatch.setattr(knowledge_tool, "_get_retriever", lambda: retriever)
-    monkeypatch.setattr(knowledge_tool, "_adaptive_mode", False)
-    result = knowledge_tool.search_knowledge("报销制度", department="finance")
-    assert result["reliable"] is True
-    assert [item["department"] for item in result["results"]] == ["finance"]
-
-
-def test_search_knowledge_enforces_tenant_and_role(monkeypatch):
-    from app.agent.rag.backends.base import RetrievedChunk
-    from app.agent.rag.chunker import Chunk
-
-    class _AccessBackend(EmptyVectorBackend):
-        def search(self, query_vector, top_k):
-            return [
-                RetrievedChunk(
-                    chunk=Chunk(
-                        chunk_id="public#00-00", doc="public", section="faq",
-                        text="public", access_level="public", tenant_id="tenant-a",
-                    ), score=0.95,
-                ),
-                RetrievedChunk(
-                    chunk=Chunk(
-                        chunk_id="other#00-00", doc="other", section="secret",
-                        text="other", access_level="internal", tenant_id="tenant-b",
-                    ), score=0.94,
-                ),
-            ]
-
-    retriever = KnowledgeRetriever(embedder=FakeEmbedder(), backend=_AccessBackend())
-    retriever.load()
-    monkeypatch.setattr(knowledge_tool, "_get_retriever", lambda: retriever)
-    monkeypatch.setattr(knowledge_tool, "_adaptive_mode", False)
-    token = set_access_context(AccessContext(tenant_id="tenant-a", role="guest", departments=()))
-    try:
-        result = knowledge_tool.search_knowledge("帮助")
-    finally:
-        reset_access_context(token)
-    assert result["reliable"] is True
-    assert [item["tenant_id"] for item in result["results"]] == ["tenant-a"]
+    assert chunk.effective_time == "2026-01-01"
+    assert chunk.updated_at == "2026-01-10"
+    assert chunk.tags == ["退换货", "售后"]
 
 
 if __name__ == "__main__":

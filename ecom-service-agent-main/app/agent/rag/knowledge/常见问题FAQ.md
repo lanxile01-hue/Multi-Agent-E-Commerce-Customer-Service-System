@@ -1,14 +1,3 @@
----
-title: 常见问题 FAQ
-source: knowledge/常见问题FAQ.md
-version: 2026.1
-effective_time: 2026-01-01
-updated_at: 2026-09-19
-department: customer-service
-access_level: internal
-tags: FAQ,客服,平台规则
----
-
 # 并夕夕 常见问题 FAQ
 
 ## 一、订单与支付

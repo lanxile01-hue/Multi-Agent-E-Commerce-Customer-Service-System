@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 
 from app.multi_agent.supervisor import SupervisorAgent
 
@@ -71,70 +71,11 @@ class _APIRequestHandler(BaseHTTPRequestHandler):
             self._send(status, body)
             return
 
-        # GET /knowledge：知识文档目录与版本元数据
-        if method == "GET" and path == "/knowledge":
-            status, body = h.knowledge_catalog()
-            self._send(status, body)
-            return
-
-        # POST /knowledge/reload：清理进程内检索器缓存
-        if method == "POST" and path == "/knowledge/reload":
-            status, body = h.reload_knowledge()
-            self._send(status, body)
-            return
-
-        # POST /knowledge/documents：写入 Markdown 文档并异步索引
-        if method == "POST" and path == "/knowledge/documents":
-            data = self._read_json()
-            status, body = h.upsert_knowledge_document(
-                data.get("filename", ""), data.get("content", ""), data.get("metadata"),
-            )
-            self._send(status, body)
-            return
-
-        # POST /knowledge/index：提交全量索引任务
-        if method == "POST" and path == "/knowledge/index":
-            data = self._read_json()
-            status, body = h.create_index_task(data.get("backend"))
-            self._send(status, body)
-            return
-
-        # GET /knowledge/documents/{filename}/versions
-        if method == "GET" and path.startswith("/knowledge/documents/") and path.endswith("/versions"):
-            filename = unquote(path.split("/")[3])
-            status, body = h.list_document_versions(filename)
-            self._send(status, body)
-            return
-
-        # POST /knowledge/documents/{filename}/rollback
-        if method == "POST" and path.startswith("/knowledge/documents/") and path.endswith("/rollback"):
-            filename = unquote(path.split("/")[3])
-            data = self._read_json()
-            status, body = h.rollback_document(filename, data.get("version", ""))
-            self._send(status, body)
-            return
-
-        # DELETE /knowledge/documents/{filename}：移动到可恢复回收站
-        if method == "DELETE" and path.startswith("/knowledge/documents/"):
-            filename = unquote(path.split("/")[3])
-            status, body = h.delete_document(filename)
-            self._send(status, body)
-            return
-
-        # GET /knowledge/index/{task_id}：查询异步索引任务
-        if method == "GET" and path.startswith("/knowledge/index/"):
-            task_id = unquote(path.rsplit("/", 1)[-1])
-            status, body = h.index_task(task_id)
-            self._send(status, body)
-            return
-
         # POST /chat
         if method == "POST" and path == "/chat":
             data = self._read_json()
             status, body = h.chat(
                 data.get("user_input", ""), data.get("thread_id"), self._client_key(),
-                data.get("tenant_id", "default"), data.get("user_id", "anonymous"),
-                data.get("role", "member"), data.get("departments", []),
             )
             self._send(status, body)
             return
@@ -165,9 +106,6 @@ class _APIRequestHandler(BaseHTTPRequestHandler):
         self._route()
 
     def do_POST(self) -> None:
-        self._route()
-
-    def do_DELETE(self) -> None:
         self._route()
 
     def log_message(self, format, *args):  # noqa: A002 - 静默默认访问日志，避免泄漏
