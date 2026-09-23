@@ -48,12 +48,13 @@ def _print_report(report: dict) -> None:
     print("\n" + "=" * 78)
     print("  过程指标（工具准确率 / 调用效率 / token达标 / 过程合理性）")
     print("=" * 78)
-    print(f"  {'用例':<22}{'工具准确':>8}{'调用效率':>8}{'token':>8}{'token达标':>9}{'过程合理':>8}")
+    print(f"  {'用例':<22}{'工具准确':>8}{'调用效率':>8}{'路由':>6}{'token':>8}{'token达标':>9}{'过程合理':>8}")
     for c in cases:
         p = c["process"]
         print(
             f"  {c['case_id']:<22}"
             f"{_fmt(p['tool_accuracy']):>8}{_fmt(p['tool_efficiency']):>8}"
+            f"{_fmt(p['route_match']):>6}"
             f"{p['token_cost']:>8}{_fmt(p['token_pass']):>9}{_fmt(p['process_soundness']):>8}"
         )
 
@@ -91,9 +92,9 @@ def main():
         help=f"测试集 JSON 路径（默认: {settings.eval_dataset_path}）",
     )
     parser.add_argument(
-        "--mode", choices=["single", "multi"],
-        default="multi" if settings.multi_agent_enabled else "single",
-        help="被测 Agent 模式（默认据 multi_agent_enabled）",
+        "--mode", choices=["single", "multi", "supervisor"],
+        default="supervisor" if settings.supervisor_enabled else ("multi" if settings.multi_agent_enabled else "single"),
+        help="被测 Agent 模式：supervisor（LangGraph 主线）/ multi（旧编排器）/ single（原始 ReAct）",
     )
     parser.add_argument(
         "--judge", dest="judge", action="store_true", default=settings.eval_use_judge,

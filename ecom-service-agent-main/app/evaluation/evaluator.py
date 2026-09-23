@@ -92,10 +92,18 @@ class Evaluator:
             res.tool_accuracy = metrics.tool_accuracy(case.expected_tools, called)
             res.tool_efficiency = metrics.tool_efficiency(case.min_tool_calls, trace.num_tool_calls)
             res.token_pass = metrics.token_cost_pass(trace.total_tokens, case.max_tokens)
-            res.route_match = metrics.route_match(case.expected_route, trace.route)
 
             # ---------- 结果指标（代码规则）----------
-            res.intent_match = metrics.intent_match(case.expected_intent, actual_intent)
+            # 词表差异：单 Agent 用 IntentType（order_query / product_consult ...），
+            # 而多 Agent 与 Supervisor 返回的是路由标签 presale / postsale / complaint。
+            # 所以 routed 模式用 expected_route 校验「路由是否正确」，expected_intent
+            # 只在单 Agent 模式生效，避免拿两套词表硬比导致恒为 0。
+            if self.sandbox.mode in {"multi", "supervisor"}:
+                res.route_match = metrics.route_match(
+                    case.expected_route, trace.route or actual_intent
+                )
+            else:
+                res.intent_match = metrics.intent_match(case.expected_intent, actual_intent)
             res.keyword_coverage = metrics.keyword_coverage(case.expected_keywords, reply)
             res.requires_human_match = metrics.requires_human_match(
                 case.expected_requires_human, actual_human

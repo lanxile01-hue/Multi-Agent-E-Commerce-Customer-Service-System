@@ -19,8 +19,10 @@ if str(ROOT) not in sys.path:
 from app.config.settings import settings  # noqa: E402
 from app.evaluation import metrics  # noqa: E402
 from app.evaluation.dataset import EvalCase, load_dataset  # noqa: E402
+from app.evaluation.evaluator import Evaluator  # noqa: E402
 from app.evaluation.sandbox import Sandbox  # noqa: E402
-from app.evaluation.trace import ToolObservation  # noqa: E402
+from app.evaluation.trace import RunTrace, ToolObservation  # noqa: E402
+from app.schemas.response import CustomerServiceResponse, IntentType  # noqa: E402
 from tests.fakes import FakeLLM  # noqa: E402
 
 DATASET = ROOT / "app" / "evaluation" / "cases.json"
@@ -35,6 +37,8 @@ def test_dataset_load():
     assert cases[0].id and cases[0].turns
     assert any(c.min_tool_calls is not None for c in cases)
     assert any(c.max_tokens is not None for c in cases)
+    # 黄金集同时标注单 Agent 意图与（多 Agent / Supervisor）路由期望
+    assert all(c.expected_route for c in cases)
 
 
 def test_metrics_rule_based():
@@ -85,6 +89,66 @@ def test_sandbox_isolation():
         assert agent.memory_manager.memory_enabled is False
     finally:
         sandbox._close_tool_managers(agent)
+
+
+def test_sandbox_supervisor_mode_builds_supervisor_agent():
+    """supervisor 模式构建主线架构，且三个子 Agent 各自独立 ToolManager。"""
+    sandbox = Sandbox(mode="supervisor")
+    agent = sandbox._build_agent(sandbox.session_path_for("case_sup"))
+    try:
+        assert type(agent).__name__ == "SupervisorAgent"
+        assert set(agent.tool_managers) == {"presale", "postsale", "complaint"}
+        assert agent.memory_manager.memory_enabled is False
+        assert len(sandbox._tool_managers(agent)) == 3
+    finally:
+        sandbox._close_tool_managers(agent)
+
+
+def _fake_trace(route: str | None, intent: IntentType) -> RunTrace:
+    trace = RunTrace(case_id="c1", turns=["问题"])
+    trace.route = route
+    trace.final_response = CustomerServiceResponse(
+        intent=intent, confidence=0.9, reply="七天无理由退货：Nike 899", requires_human=False,
+    )
+    return trace
+
+
+class _StubSandbox:
+    """只提供 run() 的假沙箱，用于验证评分口径。"""
+
+    def __init__(self, mode: str, trace: RunTrace):
+        self.mode = mode
+        self._trace = trace
+
+    def run(self, case: EvalCase) -> RunTrace:
+        return self._trace
+
+
+def test_routed_mode_scores_route_not_intent():
+    """多 Agent / Supervisor 模式下意图词表不同，应改用 expected_route 校验路由。"""
+    evaluator = Evaluator(
+        sandbox=_StubSandbox("supervisor", _fake_trace("postsale", IntentType.AFTER_SALE)),
+        client=None, model="m", use_judge=False,
+    )
+    case = EvalCase(
+        id="c1", description="查订单", turns=["查订单"],
+        expected_intent="order_query", expected_route="postsale", expected_tools=["query_order"],
+    )
+    res = evaluator.run_case(case)
+    assert res.route_match == 1.0
+    assert res.intent_match is None  # 不再拿 presale/postsale 去比 order_query
+
+
+def test_single_mode_still_scores_intent():
+    """单 Agent 模式仍按 IntentType 校验意图。"""
+    evaluator = Evaluator(
+        sandbox=_StubSandbox("single", _fake_trace(None, IntentType.ORDER_QUERY)),
+        client=None, model="m", use_judge=False,
+    )
+    case = EvalCase(id="c1", description="查订单", turns=["查订单"], expected_intent="order_query")
+    res = evaluator.run_case(case)
+    assert res.intent_match == 1.0
+    assert res.route_match is None
 
 
 # ---------- 集成测试（真实 API） ----------

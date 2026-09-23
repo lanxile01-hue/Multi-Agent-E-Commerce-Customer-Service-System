@@ -29,7 +29,7 @@ class Sandbox:
     """Agent 评估沙箱：构建隔离环境、插桩采集、跑用例产出 RunTrace。"""
 
     def __init__(self, mode: str = "single", tmp_root: str | None = None):
-        self.mode = mode  # "single" / "multi"
+        self.mode = mode  # "single" / "multi" / "supervisor"
         self.tmp_root = Path(tmp_root) if tmp_root else Path(tempfile.mkdtemp(prefix="eval_sandbox_"))
         self.tmp_root.mkdir(parents=True, exist_ok=True)
 
@@ -42,6 +42,11 @@ class Sandbox:
         settings.memory_enabled = False
         settings.mcp_enabled = False
 
+        if self.mode == "supervisor":
+            # 被测主线架构：LangGraph Supervisor（父图 + 售前/售后/投诉子图）。
+            # checkpoint 强制用 memory，保证用例之间互不污染。
+            from app.multi_agent.supervisor import SupervisorAgent
+            return SupervisorAgent(session_path=session_path, checkpoint_backend="memory")
         if self.mode == "multi":
             from app.multi_agent.orchestrator import MultiAgentOrchestrator
             return MultiAgentOrchestrator(session_path=session_path)
@@ -93,7 +98,7 @@ class Sandbox:
             tm.execute_tool = self._wrap_execute_tool(tm.execute_tool, trace)
 
         # 3) 多 Agent 路由
-        if self.mode == "multi" and hasattr(agent, "router"):
+        if hasattr(agent, "router"):
             patches.append((agent.router, "route", agent.router.route))
             agent.router.route = self._wrap_route(agent.router.route, trace)
 
@@ -174,6 +179,8 @@ class Sandbox:
         ))
 
     def _tool_managers(self, agent) -> list:
+        if hasattr(agent, "tool_managers"):
+            return list(agent.tool_managers.values())
         if self.mode == "multi" and hasattr(agent, "agents"):
             return [a.tool_manager for a in agent.agents.values()]
         if hasattr(agent, "tool_manager"):
