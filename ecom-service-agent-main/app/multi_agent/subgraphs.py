@@ -488,7 +488,9 @@ def _build_subagent_graph(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.0,
-                max_tokens=100,
+                # 推理模型会先花 token 输出 reasoning，100 会被吃光导致 content 为空，
+                # 这里必须给足预算，否则评估节点永远走 except 分支（恒判"信息充足"）。
+                max_tokens=500,
             )
             raw = (response.choices[0].message.content or "").strip()
             eval_data = extract_json_object(raw)

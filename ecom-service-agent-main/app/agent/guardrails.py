@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 
 from openai import OpenAI
 
+from app.agent.json_utils import extract_json_object
+
 
 # ---------- Prompts ----------
 
@@ -71,6 +73,15 @@ QUERY_BOUNDARY_PROMPT = """你是一个查询边界检查器。判断用户问�
 {{"in_scope": true/false, "reason": "简短说明"}}"""
 
 
+# 结构化判断（输出 JSON）的 token 预算。
+# 注意：deepseek-flash 这类推理模型会先用 completion token 生成 reasoning_content，
+# 预算过小（例如 100 / 300）时 finish_reason=length、content 为空字符串，JSON 解析
+# 必定失败，护栏会静默退化成「无幻觉 / 在能力范围内」。这里给足「推理 + JSON 正文」
+# 的预算；它是上限而非固定开销，正常回答不会用满。
+HALLUCINATION_MAX_TOKENS = 1500
+BOUNDARY_MAX_TOKENS = 800
+
+
 # ---------- Data Structures ----------
 
 @dataclass
@@ -78,12 +89,14 @@ class HallucinationResult:
     has_hallucination: bool
     hallucinations: list[str] = field(default_factory=list)
     confidence: float = 0.0
+    error: str = ""  # 检测器自身异常（如 JSON 解析失败）；非空表示这次判断不可信
 
 
 @dataclass
 class BoundaryResult:
     in_scope: bool
     reason: str = ""
+    error: str = ""  # 同上：非空表示边界检查未真正执行
 
 
 # ---------- Guardrails ----------
@@ -96,6 +109,33 @@ class Guardrails:
         self.model = model
         self.enabled = enabled
         self.max_correction_attempts = 2
+
+    # ---- 内部：结构化判断调用 ----
+
+    def _json_judge(self, prompt: str, budgets: tuple[int, ...]) -> dict:
+        """让模型输出 JSON 并稳健解析。
+
+        推理模型（如 deepseek-flash）会先用 completion token 生成 reasoning_content，
+        预算被吃光时 finish_reason=length、content 为空字符串，JSON 解析必然失败。
+        因此这里按预算阶梯重试（每档翻倍），并复用 extract_json_object 容忍
+        代码块包裹 / 注释 / 前后解释文字。
+        """
+        last_error = ""
+        for budget in budgets:
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    max_tokens=budget,
+                )
+                raw = (response.choices[0].message.content or "").strip()
+                if not raw:
+                    raise ValueError(f"返回空内容（max_tokens={budget} 被推理占满）")
+                return extract_json_object(raw)
+            except Exception as e:  # noqa: BLE001 —— 交给调用方决定兜底策略
+                last_error = f"{type(e).__name__}: {e}"
+        raise RuntimeError(last_error)
 
     # ---- 幻觉检测 ----
 
@@ -123,25 +163,19 @@ class Guardrails:
         )
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.0,
-                max_tokens=300,
+            data = self._json_judge(
+                prompt,
+                (HALLUCINATION_MAX_TOKENS, HALLUCINATION_MAX_TOKENS * 2),
             )
-            raw = (response.choices[0].message.content or "").strip()
-            if raw.startswith("```"):
-                raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-            data = json.loads(raw)
             return HallucinationResult(
                 has_hallucination=data.get("has_hallucination", False),
                 hallucinations=data.get("hallucinations", []),
                 confidence=data.get("confidence", 0.0),
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # 检测器异常时打日志，不再静默吞掉；回退为保守策略
-            print(f"  [护栏警告] 幻觉检测器异常 ({type(e).__name__}: {e})，回退为 has_hallucination=False")
-            return HallucinationResult(has_hallucination=False)
+            print(f"  [护栏警告] 幻觉检测器异常 ({e})，回退为 has_hallucination=False")
+            return HallucinationResult(has_hallucination=False, error=str(e))
 
     # ---- 自纠错 ----
 
@@ -212,22 +246,17 @@ class Guardrails:
         prompt = QUERY_BOUNDARY_PROMPT.format(user_input=user_input)
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.0,
-                max_tokens=100,
+            data = self._json_judge(
+                prompt,
+                (BOUNDARY_MAX_TOKENS, BOUNDARY_MAX_TOKENS * 2),
             )
-            raw = (response.choices[0].message.content or "").strip()
-            if raw.startswith("```"):
-                raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
-            data = json.loads(raw)
             return BoundaryResult(
                 in_scope=data.get("in_scope", True),
                 reason=data.get("reason", ""),
             )
-        except Exception:
-            return BoundaryResult(in_scope=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"  [护栏警告] 边界检查异常 ({e})，回退为 in_scope=True")
+            return BoundaryResult(in_scope=True, error=str(e))
 
     # ---- 任务分解兜底 ----
 

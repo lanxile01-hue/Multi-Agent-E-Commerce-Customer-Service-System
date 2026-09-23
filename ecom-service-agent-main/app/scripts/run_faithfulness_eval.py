@@ -136,6 +136,7 @@ def main():
     total = 0
     hallucination_count = 0
     correction_count = 0
+    detector_error_count = 0
 
     print(f"Faithfulness + 幻觉率评测: {len(TEST_CASES)} 条\n" + "=" * 60)
 
@@ -147,6 +148,8 @@ def main():
         reply = generate_reply(client, settings.model_name, case["query"], tool_result)
 
         check = guard.detect_hallucination(reply, tool_results)
+        if check.error:
+            detector_error_count += 1
 
         status = "PASS" if not check.has_hallucination else "HALLUCINATION"
         if check.has_hallucination:
@@ -173,6 +176,13 @@ def main():
     print(f"幻觉率: {hallucination_count}/{total} = {hallucination_rate:.1%}")
     print(f"自纠错成功率: {correction_count}/{hallucination_count} = {correction_rate:.1%}")
     print(f"自纠错后幻觉率: {(hallucination_count - correction_count)}/{total} = {(hallucination_count - correction_count)/total:.1%}")
+    if detector_error_count:
+        print(
+            f"\n⚠️  检测器异常: {detector_error_count}/{total} 条——这些用例走了「异常→默认无幻觉」"
+            "的兜底分支，上面的忠实率/幻觉率不可作为指标使用。"
+        )
+    else:
+        print(f"\n检测器异常: 0/{total}（全部用例的幻觉判断均正常执行）")
     print("\n评测完成。")
 
 
