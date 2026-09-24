@@ -158,9 +158,9 @@ python -m app.api.server      # http://127.0.0.1:8000/
 │   │   ├── api/ + web/               # 标准库 HTTP 服务 + 本地调试台
 │   │   ├── evaluation/ + scripts/    # 测试集与离线评测脚本
 │   │   └── prompts/                  # 客服 / 子 Agent / 评估 Prompt
-│   ├── docs/                         # 分阶段实现笔记（Prompt 工程 → 评估体系）
+│   ├── docs/                         # 当前框架文档（架构 / 编排 / RAG / 退款 / 状态 / 护栏 / 评估 / 部署）
 │   └── tests/                        # 133 项单元测试（Mock，无需 API Key）
-└── *.md                              # 本地笔记
+└── notes/                          # 本地笔记（见 ecom-service-agent-main/notes/）
 ```
 
 ---
@@ -184,5 +184,14 @@ Python 3.11+ · LangGraph · OpenAI Function Calling 兼容协议 · Pydantic ·
 
 ## 说明
 
-本项目在电商客服 Agent 教学项目的基础上二次开发，用于个人学习与求职作品集；
-仓库内同时保留了个人笔记材料，供参考讨论。使用代码前请阅读项目内的 `授权条款.md`。
+本项目在电商客服 Agent 教学项目的基础上二次开发，用于个人学习与求职作品集，
+以当前的 Supervisor 多智能体架构为准（历史分阶段实现见 git 历史）。
+
+文档入口：[架构总览](ecom-service-agent-main/docs/01-架构总览.md) ·
+[多智能体编排](ecom-service-agent-main/docs/02-多智能体编排与工具隔离.md) ·
+[Adaptive-RAG](ecom-service-agent-main/docs/03-Adaptive-RAG-检索链路.md) ·
+[退款安全](ecom-service-agent-main/docs/04-退款安全与人工确认.md) ·
+[状态恢复与记忆](ecom-service-agent-main/docs/05-状态恢复与记忆.md) ·
+[护栏与可观测性](ecom-service-agent-main/docs/06-护栏与可观测性.md) ·
+[评估体系](ecom-service-agent-main/docs/07-评估体系与实测结果.md) ·
+[运行与部署](ecom-service-agent-main/docs/08-运行、配置与部署.md)
