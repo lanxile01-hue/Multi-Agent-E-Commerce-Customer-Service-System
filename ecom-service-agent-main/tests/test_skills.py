@@ -27,8 +27,10 @@ def _manager(enabled: bool = True) -> SkillManager:
 
 def test_skill_discovery():
     sm = _manager()
-    assert sm.skill_count >= 3
-    expected = {"process-return", "track-order", "product-recommend"}
+    assert sm.skill_count >= 4
+    expected = {
+        "process-return", "track-order", "product-recommend", "complaint-escalation",
+    }
     assert expected.issubset(set(sm.skill_names))
 
 
@@ -49,6 +51,22 @@ def test_load_skill_success():
     assert result["success"] is True
     assert "退货" in result["instructions"]
     assert "query_order" in result["instructions"]
+    set_skill_manager(None)
+
+
+def test_load_complaint_escalation_skill():
+    """投诉升级技能：目录可发现、加载后包含分级处理与转人工判据。"""
+    sm = _manager()
+    set_skill_manager(sm)
+    result = load_skill("complaint-escalation")
+    assert result["success"] is True
+    instructions = result["instructions"]
+    assert "query_order" in instructions
+    assert "search_knowledge" in instructions
+    assert "L2 · 需要人工介入" in instructions
+    assert "投诉" in instructions
+    # 技能里不应引导模型自己执行退款（投诉子图也没有退款工具）
+    assert "apply_refund" not in instructions
     set_skill_manager(None)
 
 

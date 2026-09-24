@@ -47,7 +47,7 @@
 | **退款安全**：退款计划 + `interrupt` 人工确认 + 幂等键 + 审计表（同事务）+ 非幂等操作禁止重试 | `app/agent/tools/refund.py` |
 | **断点续跑**：MemorySaver / SQLite Checkpoint，按 `thread_id` 恢复中断流程 | `app/multi_agent/checkpoint.py` |
 | **护栏与兜底**：幻觉检测 + 自纠错、查询越界拦截、规划/工具失败双向 Fallback | `app/agent/guardrails.py` |
-| **记忆与技能**：短期会话记忆、长期按用户持久化；SKILL.md 渐进式披露按需加载 | `app/agent/memory/`、`app/agent/skills/` |
+| **记忆与技能**：短期会话记忆、长期按用户持久化；SKILL.md 渐进式披露按需加载，内置 4 个业务技能（退货退款 / 订单跟踪 / 商品推荐 / 投诉升级） | `app/agent/memory/`、`app/agent/skills/` |
 | **离线评估体系**：意图路由集、RAG 对比集、黄金场景集、退款安全专项，代码规则 + LLM judge 双层评分 | `app/evaluation/`、`app/scripts/` |
 | **服务化接口**：`POST /chat`、`/chat/{thread_id}/resume|reset`、`GET /chat/{thread_id}/state`、`/health`，附本地网页调试台 | `app/api/`、`app/web/` |
 
@@ -148,4 +148,5 @@ python -m app.api.server      # http://127.0.0.1:8000/
 [状态恢复与记忆](ecom-service-agent-main/docs/05-状态恢复与记忆.md) ·
 [护栏与可观测性](ecom-service-agent-main/docs/06-护栏与可观测性.md) ·
 [评估体系](ecom-service-agent-main/docs/07-评估体系与实测结果.md) ·
-[运行与部署](ecom-service-agent-main/docs/08-运行、配置与部署.md)
+[运行与部署](ecom-service-agent-main/docs/08-运行、配置与部署.md) ·
+[Skill 能力模块](ecom-service-agent-main/docs/09-Skill-可复用能力模块.md)
