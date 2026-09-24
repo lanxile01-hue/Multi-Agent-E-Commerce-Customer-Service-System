@@ -1,7 +1,7 @@
 # 09 · Skill 可复用能力模块
 
-对应代码：`app/agent/skills/loader.py`、`app/agent/skills/definitions/*/SKILL.md`、
-`app/agent/tools/skill_tool.py`
+对应代码：`app/agent/skills/loader.py`、`app/agent/tools/skill_tool.py`；
+技能内容：`skills/*/SKILL.md`
 
 ## 1. 一句话
 
@@ -23,20 +23,25 @@
 
 ## 3. 规范与目录结构
 
-遵循 Agent Skills 开放标准（`agentskills.io/specification`）：
+遵循 Agent Skills 开放标准（`agentskills.io/specification`）：**一个技能 = 一个目录 + 一个 `SKILL.md`**。
 
 ```
-app/agent/skills/
-├── loader.py                       # 扫描 / 解析 / 目录 / 按需加载
-└── definitions/
-    ├── process-return/SKILL.md      # 每个技能一个目录 + 一个 SKILL.md
-    ├── track-order/SKILL.md
-    ├── product-recommend/SKILL.md
-    └── complaint-escalation/SKILL.md
+ecom-service-agent-main/
+├── skills/                          # 技能内容：放项目根，像 .claude/skills 一样"一眼可见"
+│   ├── process-return/SKILL.md
+│   ├── track-order/SKILL.md
+│   ├── product-recommend/SKILL.md
+│   └── complaint-escalation/SKILL.md
+└── app/agent/skills/loader.py       # 加载器代码：扫描 / 解析 / 生成 catalog / 按需加载
 ```
 
 `SKILL.md` = YAML frontmatter（`name` + `description`）+ Markdown 指令体。
 `description` 要写清**什么时候用**（含适用关键词），因为模型就是靠它判断要不要加载。
+
+**为什么内容放根目录、代码放 `app/`**：技能是"业务数据"不是"代码"——放根目录便于运营/业务同学直接改、
+在仓库首页就能看见有哪些技能（和 Claude Code 的 `.claude/skills/`、Codex 的 `skills/` 约定一致）；
+而扫描、解析、注入 catalog 的逻辑属于工程实现，留在 `app/agent/skills/` 里。
+路径由 `SKILLS_DIR` 控制，改成别的目录也能用。
 
 ## 4. 两级加载（token 经济学）
 
@@ -83,7 +88,7 @@ sequenceDiagram
 
 ```bash
 SKILLS_ENABLED=true                 # 技能总开关
-SKILLS_DIR=app/agent/skills/definitions
+SKILLS_DIR=skills                  # 相对路径按项目根解析，改目录不影响启动方式
 ```
 
 CLI 里输入 `skills` 可以列出当前加载的技能目录；
@@ -111,4 +116,4 @@ pytest tests/test_skills.py -q
 ## 10. 已知边界
 
 - 技能是**软约束**：模型可能忽略或不完全遵循，关键动作仍要落到工具与白名单上兜底。
-- 当前没有技能级版本管理 / 灰度：`definitions/` 目录内容即生效，改动需要靠评估回归来保障。
+- 当前没有技能级版本管理 / 灰度：`skills/` 目录内容即生效，改动需要靠评估回归来保障。

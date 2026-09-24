@@ -123,6 +123,7 @@ python -m app.api.server      # http://127.0.0.1:8000/
 │   │   ├── api/ + web/               # 标准库 HTTP 服务 + 本地调试台
 │   │   ├── evaluation/ + scripts/    # 测试集与离线评测脚本
 │   │   └── prompts/                  # 客服 / 子 Agent / 评估 Prompt
+│   ├── skills/                       # 技能内容：4 个 SKILL.md（退货退款 / 订单跟踪 / 商品推荐 / 投诉升级）
 │   ├── docs/                         # 当前框架文档（架构 / 编排 / RAG / 退款 / 状态 / 护栏 / 评估 / 部署）
 │   └── tests/                        # 133 项单元测试（Mock，无需 API Key）
 └── notes/                             # 本地笔记（非代码）

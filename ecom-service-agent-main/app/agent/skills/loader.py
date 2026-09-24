@@ -69,8 +69,13 @@ def _parse_body(content: str) -> str:
 class SkillManager:
     """Skill 管理器：发现、注册、加载 Skills。"""
 
-    def __init__(self, skills_dir: str = "app/agent/skills/definitions", enabled: bool = True):
-        self.skills_dir = Path(skills_dir)
+    def __init__(self, skills_dir: str = "skills", enabled: bool = True):
+        path = Path(skills_dir)
+        if not path.is_absolute():
+            # 相对路径统一按「项目根」解析（与 .env 的写法一致），
+            # 避免因为启动目录不同而找不到 skills/。
+            path = Path(__file__).resolve().parents[3] / path
+        self.skills_dir = path
         self.enabled = enabled
         self._skills: dict[str, SkillMeta] = {}
 

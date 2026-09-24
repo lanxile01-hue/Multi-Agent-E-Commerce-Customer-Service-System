@@ -89,7 +89,7 @@ class Settings(BaseSettings):
 
     # Skill 配置（第8期）
     skills_enabled: bool = True
-    skills_dir: str = "app/agent/skills/definitions"
+    skills_dir: str = "skills"
 
     # Evaluation 配置（第9期，离线评估工具，无聊天开关）
     eval_dataset_path: str = "app/evaluation/cases.json"

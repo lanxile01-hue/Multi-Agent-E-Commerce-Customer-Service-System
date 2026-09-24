@@ -18,7 +18,7 @@ if str(ROOT) not in sys.path:
 from app.agent.skills import SkillManager  # noqa: E402
 from app.agent.tools.skill_tool import load_skill, set_skill_manager  # noqa: E402
 
-SKILLS_DIR = str(ROOT / "app" / "agent" / "skills" / "definitions")
+SKILLS_DIR = str(ROOT / "skills")
 
 
 def _manager(enabled: bool = True) -> SkillManager:
