@@ -125,6 +125,7 @@ python -m app.api.server      # http://127.0.0.1:8000/
 │   │   └── prompts/                  # 客服 / 子 Agent / 评估 Prompt
 │   ├── docs/                         # 当前框架文档（架构 / 编排 / RAG / 退款 / 状态 / 护栏 / 评估 / 部署）
 │   └── tests/                        # 133 项单元测试（Mock，无需 API Key）
+└── notes/                             # 本地笔记（非代码）
 ```
 ## 已知边界
 
