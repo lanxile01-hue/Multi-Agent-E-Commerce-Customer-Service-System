@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.agent.tools.manager import ToolManager  # noqa: E402
+from tools.manager import ToolManager  # noqa: E402
 
 MCP_URL = "http://127.0.0.1:9123/mcp"
 EXPECTED_TOOLS = {"query_order", "query_product", "query_logistics", "apply_refund"}

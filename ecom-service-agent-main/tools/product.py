@@ -1,6 +1,6 @@
 import random
 
-from app.agent.tools.mock_data import PRODUCTS
+from tools.mock_data import PRODUCTS
 
 
 def _match_score(product: dict, keywords: list[str]) -> int:

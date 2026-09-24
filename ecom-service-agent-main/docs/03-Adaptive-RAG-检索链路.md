@@ -1,6 +1,6 @@
 # 03 · Adaptive-RAG 检索链路
 
-对应代码：`app/agent/rag/`、`app/agent/tools/knowledge.py`、`app/scripts/build_kb_index.py`
+对应代码：`app/agent/rag/`、`tools/knowledge.py`、`app/scripts/build_kb_index.py`
 
 ## 1. 知识库与切分
 
@@ -55,7 +55,7 @@ flowchart LR
 
 ## 4. 证据链与拒答
 
-`search_knowledge`（`app/agent/tools/knowledge.py`）返回：
+`search_knowledge`（`tools/knowledge.py`）返回：
 
 ```
 evidence_id / doc / title / section / score / text

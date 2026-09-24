@@ -1,6 +1,6 @@
 # 09 · Skill 可复用能力模块
 
-对应代码：`app/agent/skills/loader.py`、`app/agent/tools/skill_tool.py`；
+对应代码：`app/agent/skills/loader.py`、`tools/skill_tool.py`；
 技能内容：`skills/*/SKILL.md`
 
 ## 1. 一句话

@@ -61,7 +61,7 @@ _NOT_FOUND_KEYWORDS = (
 _UNKNOWN_KEYWORDS = ("未知工具", "unknown tool", "no such tool", "不存在该工具")
 
 # 写操作工具（非幂等，禁止自动重试，避免重复执行退款等）。
-# 注意：风险分级请以 app/agent/tools/risks.py 为准，这里保留一份便于旧代码兼容。
+# 注意：风险分级请以 tools/risks.py 为准，这里保留一份便于旧代码兼容。
 WRITE_TOOLS = {"apply_refund"}
 
 

@@ -37,7 +37,7 @@ from app.agent.memory import MemoryManager
 from app.agent.observability import sanitize_record
 from app.agent.skills import SkillManager
 from app.agent.storage import delete_session, load_session, save_session
-from app.agent.tools.manager import ToolManager
+from tools.manager import ToolManager
 from app.config.settings import settings
 from app.multi_agent.agents import AGENT_CONFIGS
 from app.multi_agent.checkpoint import (
@@ -152,7 +152,7 @@ class SupervisorAgent:
             max_ltm_facts=settings.max_ltm_facts,
         )
         if _memory_enabled:
-            from app.agent.tools.memory_tool import set_memory_manager
+            from tools.memory_tool import set_memory_manager
             set_memory_manager(self.memory_manager)
 
         self.skill_manager = SkillManager(
@@ -160,7 +160,7 @@ class SupervisorAgent:
             enabled=_skills_enabled,
         )
         if _skills_enabled:
-            from app.agent.tools.skill_tool import set_skill_manager
+            from tools.skill_tool import set_skill_manager
             set_skill_manager(self.skill_manager)
 
         # Checkpointer：父图持有，子图继承

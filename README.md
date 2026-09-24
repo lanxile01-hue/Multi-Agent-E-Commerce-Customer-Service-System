@@ -41,10 +41,10 @@
 |---|---|
 | **Supervisor 多智能体编排**（安全边界检查 → 意图路由 → 子图执行 → 结构化校验 → 落盘） | `app/multi_agent/supervisor.py` |
 | **三个可复用子图**：`agent_reason → decide_tool → [人工确认] → execute_tools → evaluate_result → generate_response` | `app/multi_agent/subgraphs.py` |
-| **工具按域隔离**：售前 / 售后 / 投诉各持独立 `ToolManager` + 白名单 | `app/multi_agent/agents.py`、`app/agent/tools/manager.py` |
+| **工具按域隔离**：售前 / 售后 / 投诉各持独立 `ToolManager` + 白名单 | `app/multi_agent/agents.py`、`tools/manager.py` |
 | **Adaptive-RAG**：多轮指代消解 + 策略路由（vector / keyword / hybrid）+ RRF 融合 + Cohere Rerank | `app/agent/rag/{rewriter,router,hybrid_retriever,bm25_backend}.py` |
-| **证据链与拒答**：返回 `source / section / version / score / retrieval_method` 与 `reliable` 标志，低置信度不给结论 | `app/agent/tools/knowledge.py` |
-| **退款安全**：退款计划 + `interrupt` 人工确认 + 幂等键 + 审计表（同事务）+ 非幂等操作禁止重试 | `app/agent/tools/refund.py` |
+| **证据链与拒答**：返回 `source / section / version / score / retrieval_method` 与 `reliable` 标志，低置信度不给结论 | `tools/knowledge.py` |
+| **退款安全**：退款计划 + `interrupt` 人工确认 + 幂等键 + 审计表（同事务）+ 非幂等操作禁止重试 | `tools/refund.py` |
 | **断点续跑**：MemorySaver / SQLite Checkpoint，按 `thread_id` 恢复中断流程 | `app/multi_agent/checkpoint.py` |
 | **护栏与兜底**：幻觉检测 + 自纠错、查询越界拦截、规划/工具失败双向 Fallback | `app/agent/guardrails.py` |
 | **记忆与技能**：短期会话记忆、长期按用户持久化；SKILL.md 渐进式披露按需加载，内置 4 个业务技能（退货退款 / 订单跟踪 / 商品推荐 / 投诉升级） | `app/agent/memory/`、`app/agent/skills/` |
@@ -114,18 +114,14 @@ python -m app.api.server      # http://127.0.0.1:8000/
 │   ├── main.py                       # CLI 入口（四种运行模式切换）
 │   ├── app/
 │   │   ├── multi_agent/              # Supervisor 父图 + 子图 + Router + Checkpoint
-│   │   ├── agent/
-│   │   │   ├── rag/                  # Adaptive-RAG（rewriter / router / hybrid / bm25）
-│   │   │   ├── tools/                # 订单、物流、商品、退款、知识检索、记忆、技能
-│   │   │   ├── guardrails.py         # 幻觉检测 + 自纠错 + 越界拦截 + 双向 Fallback
-│   │   │   ├── memory/               # 短期 / 长期记忆
-│   │   │   └── skills/               # SKILL.md 渐进式披露
+│   │   ├── agent/                    # rag（Adaptive-RAG）/ memory / guardrails / compressor / observability
 │   │   ├── api/ + web/               # 标准库 HTTP 服务 + 本地调试台
 │   │   ├── evaluation/ + scripts/    # 测试集与离线评测脚本
 │   │   └── prompts/                  # 客服 / 子 Agent / 评估 Prompt
 │   ├── skills/                       # 技能内容：4 个 SKILL.md（退货退款 / 订单跟踪 / 商品推荐 / 投诉升级）
+│   ├── tools/                        # 工具实现：订单 / 物流 / 商品 / 退款 / 知识检索 / 记忆 / 技能加载
 │   ├── docs/                         # 当前框架文档（架构 / 编排 / RAG / 退款 / 状态 / 护栏 / 评估 / 部署）
-│   └── tests/                        # 133 项单元测试（Mock，无需 API Key）
+│   └── tests/                        # 134 项单元测试（Mock，无需 API Key）
 └── notes/                             # 本地笔记（非代码）
 ```
 ## 已知边界

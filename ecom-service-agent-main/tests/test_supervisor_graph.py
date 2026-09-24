@@ -38,7 +38,7 @@ from langgraph.graph import StateGraph, START, END  # noqa: E402
 from langgraph.graph.state import CompiledStateGraph  # noqa: E402
 from langgraph.types import Command  # noqa: E402
 
-from app.agent.tools.registry import TOOL_DEFINITIONS  # noqa: E402
+from tools.registry import TOOL_DEFINITIONS  # noqa: E402
 from app.multi_agent.router import Router  # noqa: E402
 from app.multi_agent.state import SupervisorState, empty_state  # noqa: E402
 from app.multi_agent.structured import deserialize_response  # noqa: E402

@@ -18,7 +18,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.agent.memory import MemoryManager, ShortTermMemory  # noqa: E402
-from app.agent.tools.memory_tool import recall_user_memory, set_memory_manager  # noqa: E402
+from tools.memory_tool import recall_user_memory, set_memory_manager  # noqa: E402
 from tests.fakes import FakeLLM  # noqa: E402
 
 

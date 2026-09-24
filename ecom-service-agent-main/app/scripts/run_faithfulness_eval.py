@@ -14,8 +14,8 @@ sys.path.insert(0, str(ROOT))
 from openai import OpenAI
 from app.config.settings import settings
 from app.agent.guardrails import Guardrails
-from app.agent.tools.manager import ToolManager
-from app.agent.tools.registry import execute_tool
+from tools.manager import ToolManager
+from tools.registry import execute_tool
 
 # 测试用例：问题 + 预期调用的工具
 TEST_CASES = [

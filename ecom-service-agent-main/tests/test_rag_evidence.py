@@ -18,7 +18,7 @@ from app.evaluation.rag_metrics import (  # noqa: E402
     recall_at_k,
     source_hit_rate,
 )
-from app.agent.tools import knowledge as knowledge_tool  # noqa: E402
+from tools import knowledge as knowledge_tool  # noqa: E402
 from app.agent.rag.retriever import KnowledgeRetriever  # noqa: E402
 from app.agent.rag.chunker import _chunk_one_file  # noqa: E402
 from tests.fakes import EmptyVectorBackend, FakeEmbedder  # noqa: E402

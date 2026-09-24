@@ -15,8 +15,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from app.agent.tools.errors import standard_result
-from app.agent.tools.mock_data import ORDERS
+from tools.errors import standard_result
+from tools.mock_data import ORDERS
 from app.config.settings import settings
 
 _REFUND_PROCESSING = "refund_processing"

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.agent.tools.manager import ToolManager  # noqa: E402
+from tools.manager import ToolManager  # noqa: E402
 from app.multi_agent.agents import AGENT_CONFIGS  # noqa: E402
 from app.multi_agent.orchestrator import MultiAgentOrchestrator  # noqa: E402
 from app.multi_agent.router import Router  # noqa: E402

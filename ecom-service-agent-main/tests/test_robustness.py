@@ -24,8 +24,8 @@ from langgraph.checkpoint.memory import MemorySaver  # noqa: E402
 from langgraph.types import Command  # noqa: E402
 
 from app.agent.json_utils import extract_json_object  # noqa: E402
-from app.agent.tools import knowledge as knowledge_tool  # noqa: E402
-from app.agent.tools.errors import (  # noqa: E402
+from tools import knowledge as knowledge_tool  # noqa: E402
+from tools.errors import (  # noqa: E402
     TOOL_NOT_FOUND,
     TOOL_PARAM_ERROR,
     TOOL_RETRYABLE,
@@ -33,8 +33,8 @@ from app.agent.tools.errors import (  # noqa: E402
     classify_tool_error,
     validate_tool_arguments,
 )
-from app.agent.tools.order import query_order  # noqa: E402
-from app.agent.tools.registry import TOOL_DEFINITIONS, execute_tool  # noqa: E402
+from tools.order import query_order  # noqa: E402
+from tools.registry import TOOL_DEFINITIONS, execute_tool  # noqa: E402
 from app.multi_agent.state import normalize_confirmation  # noqa: E402
 from app.multi_agent.structured import (  # noqa: E402
     build_structured_response,

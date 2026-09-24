@@ -58,7 +58,7 @@ def test_greeting_no_tool():
 
 def test_order_query_tool_execution():
     """本地 ToolManager 执行订单查询工具（mock 数据，无 API）。"""
-    from app.agent.tools.manager import ToolManager
+    from tools.manager import ToolManager
 
     manager = ToolManager(use_mcp=False)
     try:
@@ -73,7 +73,7 @@ def test_order_query_tool_execution():
 
 def test_unknown_order_graceful():
     """未知订单返回明确错误，而不是崩溃。"""
-    from app.agent.tools.manager import ToolManager
+    from tools.manager import ToolManager
 
     manager = ToolManager(use_mcp=False)
     try:

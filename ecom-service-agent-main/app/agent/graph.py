@@ -25,13 +25,13 @@ from app.agent.storage import delete_session, load_session, save_session
 from app.agent.compressor import TokenCounter, create_compressor
 from app.agent.guardrails import Guardrails
 from app.agent.json_utils import extract_json_object
-from app.agent.tools.errors import (
+from tools.errors import (
     TOOL_OK,
     TOOL_RETRYABLE,
     classify_tool_error,
     validate_tool_arguments,
 )
-from app.agent.tools.manager import ToolManager
+from tools.manager import ToolManager
 from app.config.settings import settings
 from app.prompts.agents import ROUTER_PROMPT
 from app.prompts.customer_service import SYSTEM_PROMPT
@@ -166,7 +166,7 @@ class LangGraphAgent:
             max_ltm_facts=settings.max_ltm_facts,
         )
         if settings.memory_enabled:
-            from app.agent.tools.memory_tool import set_memory_manager
+            from tools.memory_tool import set_memory_manager
             set_memory_manager(self.memory_manager)
 
         from app.agent.skills import SkillManager
@@ -175,7 +175,7 @@ class LangGraphAgent:
             enabled=settings.skills_enabled,
         )
         if settings.skills_enabled:
-            from app.agent.tools.skill_tool import set_skill_manager
+            from tools.skill_tool import set_skill_manager
             set_skill_manager(self.skill_manager)
 
         self.raw_messages: list[dict] = []

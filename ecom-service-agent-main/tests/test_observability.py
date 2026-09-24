@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.agent.observability import mask_sensitive, sanitize_record  # noqa: E402
-from app.agent.tools.errors import AgentError  # noqa: E402
+from tools.errors import AgentError  # noqa: E402
 from tests.test_supervisor_graph import FakeLLM  # noqa: E402
 from tests.test_supervisor_integration import _make_agent  # noqa: E402
 

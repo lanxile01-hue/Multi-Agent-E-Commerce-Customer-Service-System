@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
 from app.config.settings import settings  # noqa: E402
-from app.agent.tools.knowledge import (  # noqa: E402
+from tools.knowledge import (  # noqa: E402
     _create_adaptive_retriever,
     _create_standard_retriever,
     reset_retriever,

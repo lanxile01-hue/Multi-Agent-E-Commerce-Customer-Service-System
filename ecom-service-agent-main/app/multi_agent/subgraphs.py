@@ -26,14 +26,14 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import interrupt
 
 from app.agent.json_utils import extract_json_object
-from app.agent.tools.errors import (
+from tools.errors import (
     TOOL_OK,
     TOOL_RETRYABLE,
     classify_tool_error,
     standard_result,
     validate_tool_arguments,
 )
-from app.agent.tools.risks import is_non_idempotent, requires_confirmation
+from tools.risks import is_non_idempotent, requires_confirmation
 from app.multi_agent.state import SupervisorState, normalize_confirmation
 from app.multi_agent.structured import (
     build_structured_response,
@@ -43,7 +43,7 @@ from app.multi_agent.structured import (
 from app.prompts.agents import COMPLAINT_PROMPT, POSTSALE_PROMPT, PRESALE_PROMPT
 from app.schemas.response import CustomerServiceResponse
 
-# 需要人工确认的敏感工具：以 app/agent/tools/risks.py 的 requires_confirmation 为准。
+# 需要人工确认的敏感工具：以 tools/risks.py 的 requires_confirmation 为准。
 # （apply_refund 属于 requires_confirmation；compensation / complaint_escalation 尚未实现）
 
 # 各子 Agent 的工具白名单（与 agents.AGENT_CONFIGS 保持一致，作为兜底）

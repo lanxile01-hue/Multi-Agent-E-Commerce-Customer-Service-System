@@ -9,7 +9,7 @@ from app.agent.json_utils import extract_json_object
 from app.config.settings import settings
 from app.prompts.customer_service import SYSTEM_PROMPT
 from app.schemas.response import CustomerServiceResponse, IntentType
-from app.agent.tools.manager import ToolManager
+from tools.manager import ToolManager
 
 
 class EcomAgent:
@@ -53,7 +53,7 @@ class EcomAgent:
         )
 
         if _memory_enabled:
-            from app.agent.tools.memory_tool import set_memory_manager
+            from tools.memory_tool import set_memory_manager
             set_memory_manager(self.memory_manager)
 
         from app.agent.skills import SkillManager
@@ -62,7 +62,7 @@ class EcomAgent:
             enabled=_skills_enabled,
         )
         if _skills_enabled:
-            from app.agent.tools.skill_tool import set_skill_manager
+            from tools.skill_tool import set_skill_manager
             set_skill_manager(self.skill_manager)
 
         self.raw_messages: list[dict] = []

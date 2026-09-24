@@ -25,10 +25,10 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.agent.tools.manager import ToolManager  # noqa: E402
-from app.agent.tools.registry import TOOL_DEFINITIONS  # noqa: E402
-from app.agent.tools.errors import validate_tool_arguments  # noqa: E402
-from app.agent.tools.refund import (  # noqa: E402
+from tools.manager import ToolManager  # noqa: E402
+from tools.registry import TOOL_DEFINITIONS  # noqa: E402
+from tools.errors import validate_tool_arguments  # noqa: E402
+from tools.refund import (  # noqa: E402
     apply_refund,
     clear_refund_idempotency,
     get_refund_audit_log,

@@ -13,7 +13,7 @@ from app.config.settings import settings
 from app.multi_agent.agents import AGENT_CONFIGS, SubAgent
 from app.multi_agent.router import Router
 from app.schemas.response import CustomerServiceResponse, IntentType
-from app.agent.tools.manager import ToolManager
+from tools.manager import ToolManager
 
 
 class MultiAgentOrchestrator:
@@ -70,7 +70,7 @@ class MultiAgentOrchestrator:
         )
 
         if _memory_enabled:
-            from app.agent.tools.memory_tool import set_memory_manager
+            from tools.memory_tool import set_memory_manager
             set_memory_manager(self.memory_manager)
 
         from app.agent.skills import SkillManager
@@ -79,7 +79,7 @@ class MultiAgentOrchestrator:
             enabled=_skills_enabled,
         )
         if _skills_enabled:
-            from app.agent.tools.skill_tool import set_skill_manager
+            from tools.skill_tool import set_skill_manager
             set_skill_manager(self.skill_manager)
 
         self.raw_messages: list[dict] = []
