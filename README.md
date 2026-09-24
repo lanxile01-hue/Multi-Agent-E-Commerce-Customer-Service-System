@@ -53,41 +53,6 @@
 
 ---
 
-## 架构
-
-**父图（Supervisor）**
-
-```mermaid
-flowchart TD
-    U[用户消息] --> P[preprocess 输入安全检查 / 越界拦截]
-    P --> R[route 意图路由]
-    R -->|presale| A1[售前子图：商品咨询 / 推荐]
-    R -->|postsale| A2[售后子图：订单 / 物流 / 退换货]
-    R -->|complaint| A3[投诉子图：投诉受理 / 升级]
-    A1 --> V[validate_response 结构化校验 + 转人工判断]
-    A2 --> V
-    A3 --> V
-    V --> S[persist 统计与落盘]
-    S --> O[结构化回复 + 引用证据]
-```
-
-**子图内部（三个子图同构，工具与领域 Prompt 不同）**
-
-```mermaid
-flowchart LR
-    N1[agent_reason 规划] --> N2[agent_decide_tool]
-    N2 --> N3{敏感操作?}
-    N3 -->|是| N4[human_confirmation · interrupt 等确认]
-    N3 -->|否| N5[execute_tools · 超时控制 + 重试策略]
-    N4 --> N5
-    N5 --> N6[evaluate_result]
-    N6 -->|信息不足| N1
-    N6 -->|信息充足| N7[generate_response]
-```
-
-**四种运行模式可共存切换**（`main.py` 按配置选择）：LangGraph Supervisor（默认）／旧 Multi-Agent 编排器／单 Agent LangGraph 状态机／原始 ReAct `EcomAgent`。
-
----
 
 ## 离线评测
 
@@ -160,19 +125,7 @@ python -m app.api.server      # http://127.0.0.1:8000/
 │   │   └── prompts/                  # 客服 / 子 Agent / 评估 Prompt
 │   ├── docs/                         # 当前框架文档（架构 / 编排 / RAG / 退款 / 状态 / 护栏 / 评估 / 部署）
 │   └── tests/                        # 133 项单元测试（Mock，无需 API Key）
-└── notes/                          # 本地笔记（见 ecom-service-agent-main/notes/）
 ```
-
----
-
-## 技术栈
-
-Python 3.11+ · LangGraph · OpenAI Function Calling 兼容协议 · Pydantic ·
-向量检索 + BM25 + RRF + Cohere Rerank · MCP（Streamable HTTP）· SQLite Checkpoint ·
-标准库 `http.server` + 原生前端（零额外依赖）
-
----
-
 ## 已知边界
 
 - API 层是演示级标准库实现：**没有鉴权、没有多租户、限流只在进程内**，生产需要替换为 JWT/OIDC + 网关限流。
