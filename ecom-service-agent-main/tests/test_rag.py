@@ -112,14 +112,15 @@ def test_tool_shape_live(backend_name):
 @pytest.mark.integration
 @pytest.mark.parametrize("backend_name", ["numpy", "chroma"])
 def test_agent_end_to_end_live(backend_name):
-    from app.agent.chat import EcomAgent
     from app.schemas.response import CustomerServiceResponse
+    from app.multi_agent.supervisor import SupervisorAgent
 
     settings.rag_backend = backend_name
     knowledge_tool.reset_retriever()
     Path(TEST_SESSION).unlink(missing_ok=True)
     try:
-        agent = EcomAgent(session_path=TEST_SESSION, memory_enabled=False)
+        # 主线 Supervisor 链路 + 真实 API：售后子图应通过 search_knowledge 答出政策细节
+        agent = SupervisorAgent(session_path=TEST_SESSION, memory_enabled=False)
         resp = agent.chat("我想了解一下你们的七天无理由退货是怎么算运费的？")
         assert isinstance(resp, CustomerServiceResponse)
         assert resp.reply

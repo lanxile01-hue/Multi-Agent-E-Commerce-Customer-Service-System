@@ -14,7 +14,7 @@
 - 是否等待人工确认，依据 checkpointer snapshot 的 next/interrupt 判断，不依赖内存字典，
   因此进程重启后仍能恢复确认流程（前提：使用 sqlite 持久化 checkpointer）。
 
-对外接口与 EcomAgent / MultiAgentOrchestrator 一致：
+对外接口：
     chat(user_input, thread_id=...) / resume(thread_id, decision)
     reset(thread_id=...) / save() / close()
 """

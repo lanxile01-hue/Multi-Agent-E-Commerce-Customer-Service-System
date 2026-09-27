@@ -1,6 +1,6 @@
 """记忆管理器：统一管理短期记忆和长期记忆。
 
-EcomAgent 和 MultiAgentOrchestrator 通过此管理器与记忆系统交互。
+Supervisor 链路通过此管理器与记忆系统交互（短期会话内 + 长期按用户持久化）。
 """
 
 from __future__ import annotations

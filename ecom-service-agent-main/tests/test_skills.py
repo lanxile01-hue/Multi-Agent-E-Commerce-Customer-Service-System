@@ -100,20 +100,5 @@ def test_lazy_loading():
     assert len(body) > 100
 
 
-@pytest.mark.integration
-def test_agent_integration_live(tmp_path):
-    from app.agent.chat import EcomAgent
-
-    agent = EcomAgent(
-        session_path=str(tmp_path / "session.json"),
-        memory_enabled=False,
-        skills_enabled=True,
-    )
-    assert agent.skill_manager.enabled
-    messages = agent._build_messages()
-    assert "可用技能" in messages[0]["content"]
-    assert "process-return" in messages[0]["content"]
-
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

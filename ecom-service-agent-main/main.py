@@ -1,5 +1,4 @@
-from app.agent.chat import EcomAgent
-from app.config.settings import settings
+from app.multi_agent.supervisor import SupervisorAgent
 from app.schemas.response import IntentType
 
 # 意图类型的中文映射
@@ -17,24 +16,11 @@ INTENT_LABELS = {
 
 
 def main():
-    if settings.supervisor_enabled:
-        from app.multi_agent.supervisor import SupervisorAgent
-        agent = SupervisorAgent()
-        mode = "LangGraph Supervisor（父图 + 三个子图）"
-    elif settings.multi_agent_enabled:
-        from app.multi_agent.orchestrator import MultiAgentOrchestrator
-        agent = MultiAgentOrchestrator()
-        mode = "Multi-Agent 协作模式（旧版）"
-    elif settings.langgraph_enabled:
-        from app.agent.graph import LangGraphAgent
-        agent = LangGraphAgent()
-        mode = "LangGraph 状态机（单 Agent）"
-    else:
-        agent = EcomAgent()
-        mode = "ReAct + MCP + RAG"
+    # 唯一主线：LangGraph Supervisor（父图 + 售前/售后/投诉三个子图）
+    agent = SupervisorAgent()
 
     print("=" * 50)
-    print(f"  帅团 · 智能客服「小乐」({mode})")
+    print("  帅团 · 智能客服「小乐」(LangGraph Supervisor：父图 + 三个子图)")
     print("  支持工具调用 + 政策检索 + 用户记忆 + 技能编排")
     print("  输入 quit/exit 退出, reset 重置, memory 查看记忆, skills 查看技能")
     print("=" * 50)

@@ -57,14 +57,6 @@ class Settings(BaseSettings):
     prometheus_base_url: str = "http://127.0.0.1:9090"
     prometheus_request_timeout: float = 10.0
 
-    # Multi-Agent 配置（第6期）
-    multi_agent_enabled: bool = False
-
-    # LangGraph 配置（魔改：替换 ReAct 为状态图）
-    langgraph_enabled: bool = False
-
-    # Supervisor 配置（LangGraph 父图 + 三个子图，默认推荐模式）
-    supervisor_enabled: bool = True
     # Checkpoint 配置（父图持有）
     # - checkpoint_backend: memory（仅进程内，重启丢失）/ sqlite（磁盘持久化，可跨进程）
     #   / postgres（未来扩展，需额外安装 langgraph-checkpoint-postgres）/ auto

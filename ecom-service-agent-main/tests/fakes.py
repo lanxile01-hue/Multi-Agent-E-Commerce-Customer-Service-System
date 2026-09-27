@@ -1,10 +1,10 @@
 """共享测试替身：FakeLLM / FakeToolManager / FakeEmbedder / 空向量后端。
 
-面向旧版 Agent（EcomAgent / MultiAgentOrchestrator）与 Memory / RAG 等模块的
-单元测试注入，避免真实 OpenAI API 调用。
+面向 Supervisor 链路与 Memory / RAG / Skills 等模块的单元测试注入，
+避免真实 OpenAI API 调用。
 
-注意：Supervisor 子图级别的 FakeLLM / FakeToolManager 仍保留在
-`tests/test_supervisor_graph.py`（与既有专项测试保持一致），此处是旧版 Agent 用替身。
+注意：Supervisor 子图级别的 FakeLLM / FakeToolManager 在
+`tests/test_supervisor_graph.py` 里另有一份（与既有专项测试保持一致）。
 """
 
 from __future__ import annotations

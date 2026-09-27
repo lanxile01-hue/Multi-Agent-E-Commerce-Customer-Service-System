@@ -2,7 +2,7 @@
 
 单元测试（默认）：直接测 MemoryManager / ShortTermMemory / LongTermMemory，
 用 FakeLLM 模拟事实提取，不依赖真实 API。
-集成测试（integration）：走 EcomAgent 真实链路。
+集成测试（integration）：走 Supervisor 真实链路。
 """
 
 from __future__ import annotations
@@ -123,10 +123,11 @@ def test_recall_memory_tool(tmp_path):
 
 @pytest.mark.integration
 def test_memory_live(tmp_path):
-    from app.agent.chat import EcomAgent
     from app.agent.memory import MemoryManager as MM
+    from app.multi_agent.supervisor import SupervisorAgent
 
-    agent = EcomAgent(
+    # 主线 Supervisor 链路 + 真实 API：验证短期记忆抽取确实写进 STM
+    agent = SupervisorAgent(
         session_path=str(tmp_path / "session.json"),
         memory_enabled=False,
         skills_enabled=False,

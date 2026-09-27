@@ -92,9 +92,9 @@ def main():
         help=f"测试集 JSON 路径（默认: {settings.eval_dataset_path}）",
     )
     parser.add_argument(
-        "--mode", choices=["single", "multi", "supervisor"],
-        default="supervisor" if settings.supervisor_enabled else ("multi" if settings.multi_agent_enabled else "single"),
-        help="被测 Agent 模式：supervisor（LangGraph 主线）/ multi（旧编排器）/ single（原始 ReAct）",
+        "--mode", choices=["supervisor"],
+        default="supervisor",
+        help="被测 Agent 模式（当前只有 LangGraph Supervisor 主线）",
     )
     parser.add_argument(
         "--judge", dest="judge", action="store_true", default=settings.eval_use_judge,

@@ -490,18 +490,6 @@ def test_structured_output():
         _fail("结构化输出不合法")
 
 
-# ---------- 测试 16：原有测试模块仍可导入 ----------
-def test_legacy_modules_importable():
-    print("\n[16/19] 原有测试模块仍可导入")
-    try:
-        import app.multi_agent.orchestrator  # noqa: F401
-        import app.agent.graph  # noqa: F401
-        import app.agent.chat  # noqa: F401
-        _ok("旧版 orchestrator / graph / chat 模块可正常导入")
-    except Exception as e:
-        _fail(f"旧模块导入失败: {e}")
-
-
 # ---------- 测试 17：子 Agent 上下文真正生效（三个 Agent 都验证） ----------
 _AGENT_CONTEXT_MARKERS = {
     "presale": "售前咨询专家",

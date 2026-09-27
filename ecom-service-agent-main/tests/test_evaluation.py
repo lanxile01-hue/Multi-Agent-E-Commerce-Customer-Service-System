@@ -82,7 +82,7 @@ def test_judge_parse_failure_fallback():
 
 
 def test_sandbox_isolation():
-    sandbox = Sandbox(mode="single")
+    sandbox = Sandbox()
     assert sandbox.session_path_for("case_a") != sandbox.session_path_for("case_b")
     agent = sandbox._build_agent(sandbox.session_path_for("case_a"))
     try:
@@ -155,7 +155,7 @@ def test_single_mode_still_scores_intent():
 
 @pytest.mark.integration
 def test_sandbox_trace_live():
-    sandbox = Sandbox(mode="single")
+    sandbox = Sandbox()
     case = EvalCase(
         id="trace_probe",
         description="探针：查询订单",
@@ -181,7 +181,7 @@ def test_evaluator_two_tier_live():
             id="eval_order",
             description="查询订单",
             turns=["帮我查一下订单 ORD-20240115-001"],
-            expected_intent="order_query",
+            expected_route="postsale",
             expected_tools=["query_order"],
             min_tool_calls=1,
             max_tokens=8000,
@@ -190,14 +190,14 @@ def test_evaluator_two_tier_live():
             id="eval_greeting",
             description="问候",
             turns=["你好"],
-            expected_intent="greeting",
+            expected_route="postsale",
             expected_tools=[],
             min_tool_calls=0,
             max_tokens=4000,
         ),
     ]
 
-    sandbox = Sandbox(mode="single")
+    sandbox = Sandbox()
     evaluator = Evaluator(sandbox=sandbox, client=client, model=settings.model_name, use_judge=False)
     report = evaluator.run_all(cases)
 
@@ -205,7 +205,7 @@ def test_evaluator_two_tier_live():
     c0 = report["cases"][0]
     assert not c0["error"]
     assert c0["result"]["answer_quality"] is None  # no-judge 时 judge 维度为 None
-    assert c0["result"]["intent_match"] is not None
+    assert c0["process"]["route_match"] is not None  # 单主线：按路由维度评分
 
 
 if __name__ == "__main__":
