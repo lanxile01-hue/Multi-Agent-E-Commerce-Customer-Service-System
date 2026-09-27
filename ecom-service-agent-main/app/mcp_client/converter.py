@@ -9,12 +9,18 @@ def mcp_tools_to_openai(mcp_tools: list) -> list[dict]:
     """
     result = []
     for tool in mcp_tools:
+        # 1.x 字段名是 inputSchema，2.x 改成 input_schema
+        schema = (
+            getattr(tool, "input_schema", None)
+            or getattr(tool, "inputSchema", None)
+            or {"type": "object", "properties": {}}
+        )
         result.append({
             "type": "function",
             "function": {
                 "name": tool.name,
                 "description": tool.description or "",
-                "parameters": tool.inputSchema,
+                "parameters": schema,
             },
         })
     return result

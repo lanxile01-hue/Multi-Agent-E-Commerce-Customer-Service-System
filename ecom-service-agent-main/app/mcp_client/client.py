@@ -47,7 +47,10 @@ class MCPClient:
     async def _run(self, tool_definitions: list[dict], error_holder: list[Exception]):
         """后台协程：建立连接 → 发现工具 → 保持存活等待调用。"""
         try:
-            async with streamable_http_client(self._server_url) as (read, write, _):
+            # 1.x 的 streamable_http_client 产出 3 元组 (read, write, get_session_id)，
+            # 2.x 产出 2 元组 (read, write)；统一按下标取前两个，兼容两个版本。
+            async with streamable_http_client(self._server_url) as streams:
+                read, write = streams[0], streams[1]
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     self._session = session
@@ -77,11 +80,19 @@ class MCPClient:
                 {"error": f"MCP 工具调用出错: {e}"}, ensure_ascii=False
             )
 
-        if result.isError:
+        # 1.x 用 isError，2.x 改成 is_error
+        is_error = getattr(result, "isError", None)
+        if is_error is None:
+            is_error = getattr(result, "is_error", False)
+        if is_error:
             text = result.content[0].text if result.content else "未知错误"
             return json.dumps({"error": f"工具执行出错: {text}"}, ensure_ascii=False)
 
-        return result.content[0].text if result.content else "{}"
+        if result.content:
+            return result.content[0].text
+        # 2.x：返回 dict/list 的工具会走 structuredContent
+        structured = getattr(result, "structured_content", None)
+        return json.dumps(structured, ensure_ascii=False) if structured else "{}"
 
     def close(self):
         """关闭 MCP 连接，清理后台线程。"""

@@ -5,7 +5,8 @@
 - requires_confirmation: 高风险写操作，非幂等，禁止自动重试，必须先经人工确认。
 
 当前实现边界（重要）：
-- 项目只实现了 `apply_refund` 这一个高风险写工具。
+- 高风险写工具有两个：本地的 `apply_refund`，以及 MCP 侧的 `create_after_sale_ticket`
+  （由 `mcp_server/server.py` 暴露，仅在 `MCP_ENABLED=true` 时可用）。
 - `compensation`、`complaint_escalation` 尚未实现（不在 registry 中），
   此处仅为未来工具预留风险策略，**不虚构实现**。当它们被实现并注册时，
   应把它们加入 TOOL_RISK_LEVELS 并同样走 requires_confirmation 流程。
@@ -23,8 +24,11 @@ TOOL_RISK_LEVELS: dict[str, str] = {
     "list_user_orders": READ_ONLY,
     "recall_user_memory": READ_ONLY,
     "load_skill": READ_ONLY,
+    # MCP 侧独有工具（mcp_server 暴露，需 MCP_ENABLED=true）
+    "query_after_sale_tickets": READ_ONLY,
     # 高风险写操作（需人工确认 + 幂等键，禁止自动重试）
     "apply_refund": REQUIRES_CONFIRMATION,
+    "create_after_sale_ticket": REQUIRES_CONFIRMATION,
     # 未来预留（当前未实现）：
     # "compensation": REQUIRES_CONFIRMATION,
     # "complaint_escalation": REQUIRES_CONFIRMATION,

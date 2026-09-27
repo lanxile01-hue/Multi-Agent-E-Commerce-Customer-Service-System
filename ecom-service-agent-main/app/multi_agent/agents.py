@@ -19,11 +19,16 @@ AGENT_CONFIGS = {
         "tools": {
             "query_order", "query_logistics", "apply_refund",
             "list_user_orders", "search_knowledge", "load_skill",
+            # MCP 侧独有：售后工单进度查询 / 建单（MCP_ENABLED=true 时才可用）
+            "query_after_sale_tickets", "create_after_sale_ticket",
         },
     },
     "complaint": {
         "name": "小乐-投诉",
         "prompt": COMPLAINT_PROMPT,
-        "tools": {"query_order", "search_knowledge", "load_skill"},
+        "tools": {
+            "query_order", "search_knowledge", "load_skill",
+            "query_after_sale_tickets", "create_after_sale_ticket",
+        },
     },
 }

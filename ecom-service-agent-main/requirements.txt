@@ -2,7 +2,8 @@ openai>=1.0.0
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 python-dotenv>=1.0.0
-mcp>=1.8.0
+# MCP SDK：1.x（FastMCP）与 2.x（MCPServer）均已适配
+mcp>=1.8.0,<3
 chromadb>=0.5.0
 langgraph>=1.0.0
 langgraph-checkpoint>=4.0.0

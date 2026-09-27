@@ -10,7 +10,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![Orchestration](https://img.shields.io/badge/Orchestration-LangGraph-1C3C3C)
-![Tests](https://img.shields.io/badge/tests-133%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-119%20passed-brightgreen)
 ![Intent](https://img.shields.io/badge/intent%20routing-93%25-blue)
 ![MRR](https://img.shields.io/badge/RAG%20MRR-0.844%20%E2%86%92%200.924-orange)
 
@@ -121,7 +121,7 @@ python -m app.api.server      # http://127.0.0.1:8000/
 │   ├── skills/                       # 技能内容：4 个 SKILL.md（退货退款 / 订单跟踪 / 商品推荐 / 投诉升级）
 │   ├── tools/                        # 工具实现：订单 / 物流 / 商品 / 退款 / 知识检索 / 记忆 / 技能加载
 │   ├── docs/                         # 当前框架文档（架构 / 编排 / RAG / 退款 / 状态 / 护栏 / 评估 / 部署）
-│   └── tests/                        # 134 项单元测试（Mock，无需 API Key）
+│   └── tests/                        # 119 项单元测试（Mock，无需 API Key）
 └── notes/                             # 本地笔记（非代码）
 ```
 ## 已知边界
